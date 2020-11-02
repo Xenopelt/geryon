@@ -90,8 +90,9 @@ using namespace ucl_opencl;
 #include "nvd_timer.h"
 using namespace ucl_cudadr;
 
+#elif defined(UCL_CUDART)
 
-using namespace ucl_cudadr;
+#error "The lammps programmer removed this paragraph and I do not bother to add it back."
 
 #endif
 
