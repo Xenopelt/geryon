@@ -95,8 +95,22 @@ class UCL_Program {
   inline int load_string(const void *program, const char *flags="",
                          std::string *log=NULL) {
     cl_int error_flag;
+
+    #ifdef USE_OPENCL
+
+    const char* buffer[2] ;
+    buffer[0] = OpenCl_AddStr;
+    buffer[1] = (const char *)program;
+
+    _program=clCreateProgramWithSource(_context,2,(const char**)buffer,NULL,&error_flag);
+
+    #else
+
     const char *prog=(const char *)program;
     _program=clCreateProgramWithSource(_context,1,&prog,NULL,&error_flag);
+
+    #endif
+
     CL_CHECK_ERR(error_flag);
     error_flag = clBuildProgram(_program,1,&_device,flags,NULL,NULL);
     if (error_flag!=-11)
