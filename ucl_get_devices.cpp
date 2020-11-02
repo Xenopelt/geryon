@@ -13,7 +13,7 @@
     copyright            : (C) 2009 by W. Michael Brown
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,20 +21,7 @@
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
-#ifdef UCL_OPENCL
-#include "ocl_device.h"
-using namespace ucl_opencl;
-#endif
-
-#ifdef UCL_CUDADR
-#include "nvd_device.h"
-using namespace ucl_cudadr;
-#endif
-
-#ifdef UCL_CUDART
-#include "nvc_device.h"
-using namespace ucl_cudart;
-#endif
+#include "include/geryon.h"
 
 int main(int argc, char** argv) {
   UCL_Device cop;

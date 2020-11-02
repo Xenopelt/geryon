@@ -1,66 +1,74 @@
-/***************************************************************************
-                                ucl_doxygen.h
-                             -------------------
-                               W. Michael Brown
 
-  Doxygen documentation for Geryon
-
- __________________________________________________________________________
-    This file is part of the Geryon Unified Coprocessor Library (UCL)
- __________________________________________________________________________
-
-    begin                : Mon Mar 13 2010
-    copyright            : (C) 2010 by W. Michael Brown
-    email                : brownw@ornl.gov
- ***************************************************************************/
-
-/* -----------------------------------------------------------------------
-   Copyright (2010) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
-   the Simplified BSD License.
-   ----------------------------------------------------------------------- */
-/**
- * \file geryon.h 
- * \brief Main geryon header 
- * \mainpage Geryon
- * \section About
- * Geryon is a simple C++ library intended to simplify device and memory
- * management, I/O, and timing for the CUDA and OpenCL APIs. Additionally, 
- * it provides a single interface to the CUDA-Driver, CUDA-Runtime, and 
- * OpenCL APIs to allow a single code to compile using any of the 3 APIs.
- *
- * The Geryon source code, examples, and slides describing Geryon and
- * CUDA and OpenCL APIs can be found here:
- *
- * http://scicomp.github.com/geryon
- *
- * Geryon is divided into 3 namespaces:
- *   - ucl_cudart - Namespace for CUDA-Runtime
- *   - ucl_cudadr - Namespace for CUDA-OpenCL
- *   - ucl_opencl - Namespace for OpenCL
- *
- * With only a few exceptions, the classes and (typedefed) prototypes 
- * will be the same for all 3 namespaces. The doxygen documentation
- * is probably best navigated by starting with one of the 3 namespaces.
- * <p>
- * Copyright (2010) Sandia Corporation.  Under the terms of Contract 
- * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains 
- * certain rights in this software.  This software is distributed under 
- * the Simplified BSD License.</p>
- */
-  
 #ifndef GERYON_H
 #define GERYON_H
 
 #include <string>
 
-#if !defined(UCL_OPENCL) && !defined(UCL_CUDADR) && !defined(UCL_CUDART)
-#error "Must define a target platform"
+
+
+#ifdef __CUDACC__ // if it's in .cu file
+#define __global
+#define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
+#define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)
+#define THREAD_ID_X threadIdx.x
+#define THREAD_ID_Y threadIdx.y
+#define BLOCK_ID_X blockIdx.x
+#define BLOCK_ID_Y blockIdx.y
+#define BLOCK_SIZE_X blockDim.x
+#define BLOCK_SIZE_Y blockDim.y
+#define __kernel extern "C" __global__
+#define __local __shared__
+#define mul24 __mul24
+#define __inline __host__ __device__
+
+#elif defined(cl_khr_global_int32_base_atomics) // if it's in .cl file
+
+#define GLOBAL_ID_X get_global_id(0)
+#define GLOBAL_ID_Y get_global_id(1)
+#define THREAD_ID_X get_local_id(0)
+#define THREAD_ID_Y get_local_id(1)
+#define BLOCK_ID_X get_group_id(0)
+#define BLOCK_ID_Y get_group_id(1)
+#define BLOCK_SIZE_X get_local_size(0)
+#define BLOCK_SIZE_Y get_local_size(1)
+#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
+#define __inline inline
+
+#ifdef cl_khr_fp64
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#elif defined(cl_amd_fp64)
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#else
+    #error "Double precision floating point not supported by OpenCL implementation."
 #endif
 
-// OpenCL headers
-#ifdef UCL_OPENCL
+#else
+
+
+
+#if defined(USE_OPENCL) || defined (UCL_OPENCL) // use OpenCL
+
+const char * OpenCl_AddStr = 
+"#define GLOBAL_ID_X get_global_id(0)\n"
+"#define GLOBAL_ID_Y get_global_id(1)\n"
+"#define THREAD_ID_X get_local_id(0)\n"
+"#define THREAD_ID_Y get_local_id(1)\n"
+"#define BLOCK_ID_X get_group_id(0)\n"
+"#define BLOCK_ID_Y get_group_id(1)\n"
+"#define BLOCK_SIZE_X get_local_size(0)\n"
+"#define BLOCK_SIZE_Y get_local_size(1)\n"
+"#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)\n"
+"#define __inline inline\n"
+"#ifdef cl_khr_fp64\n"
+"    #pragma OPENCL EXTENSION cl_khr_fp64 : enable\n"
+"#elif defined(cl_amd_fp64)\n"
+"    #pragma OPENCL EXTENSION cl_amd_fp64 : enable\n"
+"#else\n"
+"    #error \"Double precision floating point not supported by OpenCL implementation.\"\n"
+"#endif\n"
+"\n"
+;
+
 #include "ocl_device.h"
 #include "ocl_mat.h"
 #include "ocl_kernel.h"
@@ -69,10 +77,10 @@
 #include "ocl_texture.h"
 #include "ocl_timer.h"
 using namespace ucl_opencl;
-#endif
 
-// CUDA driver headers
-#ifdef UCL_CUDADR
+
+#elif defined(USE_CUDA) || defined(UCL_CUDADR) // use CUDA
+
 #include "nvd_device.h"
 #include "nvd_mat.h"
 #include "nvd_kernel.h"
@@ -81,61 +89,53 @@ using namespace ucl_opencl;
 #include "nvd_texture.h"
 #include "nvd_timer.h"
 using namespace ucl_cudadr;
-#endif
 
-// CUDA runtime headers
-#ifdef UCL_CUDART
-#include "nvc_device.h"
-#include "nvc_mat.h"
-#if CUDART_VERSION >= 4000
-#include "nvc_kernel.h"
-#endif
-#include "nvc_macros.h"
-#include "nvc_memory.h"
-#include "nvc_texture.h"
-#include "nvc_timer.h"
-#include "nvc_traits.h"
-using namespace ucl_cudart;
+
+using namespace ucl_cudadr;
+
 #endif
 
 // Standard ucl headers
 #include "ucl_basemat.h"
 #include "ucl_copy.h"
 #include "ucl_d_mat.h"
-#include "ucl_d_vec.h" 
-#include "ucl_h_mat.h" 
-#include "ucl_h_vec.h" 
-#include "ucl_image.h"
+#include "ucl_d_vec.h"
+#include "ucl_h_mat.h"
+#include "ucl_h_vec.h"
+// #include "ucl_image.h"
 #include "ucl_matrix.h"
 #include "ucl_nv_kernel.h"
 #include "ucl_print.h"
-#include "ucl_types.h" 
+#include "ucl_types.h"
 #include "ucl_vector.h"
-#include "ucl_version.h"
-#include "ucl_tracer.h"
+// #include "ucl_version.h"
+// #include "ucl_tracer.h"
 
-/** 
- * \brief Converts to human readable error. 
+/**
+ * \brief Converts to human readable error.
  * \param result Code that has been returned by geryon call.
  * \return The string corresponding to the result code.
  */
 inline std::string ucl_check(int result)
 {
    switch(result) {
-      case UCL_ERROR: 
-         return std::string("UCL_ERROR"); break; 
-      case UCL_SUCCESS: 
-         return std::string("UCL_SUCCESS"); break; 
-      case UCL_COMPILE_ERROR: 
-         return std::string("UCL_COMPILE_ERROR"); break; 
-      case UCL_FILE_NOT_FOUND: 
-         return std::string("UCL_FILE_NOT_FOUND"); break; 
-      case UCL_FUNCTION_NOT_FOUND: 
+      case UCL_ERROR:
+         return std::string("UCL_ERROR"); break;
+      case UCL_SUCCESS:
+         return std::string("UCL_SUCCESS"); break;
+      case UCL_COMPILE_ERROR:
+         return std::string("UCL_COMPILE_ERROR"); break;
+      case UCL_FILE_NOT_FOUND:
+         return std::string("UCL_FILE_NOT_FOUND"); break;
+      case UCL_FUNCTION_NOT_FOUND:
          return std::string("UCL_FUNCTION_NOT_FOUND"); break;
-      case UCL_MEMORY_ERROR: 
-         return std::string("UCL_MEMORY_ERROR"); break; 
+      case UCL_MEMORY_ERROR:
+         return std::string("UCL_MEMORY_ERROR"); break;
    }
    return std::string("Unknown");
 }
 
+
+
+#endif
 #endif

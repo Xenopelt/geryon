@@ -1,7 +1,7 @@
 #ifndef NVD_MACROS_H
 #define NVD_MACROS_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <cassert>
 #include <cuda.h>
 
@@ -13,7 +13,12 @@
 
 #ifdef MPI_GERYON
 #include "mpi.h"
-#define NVD_GERYON_EXIT MPI_Abort(MPI_COMM_WORLD,-1)
+#define NVD_GERYON_EXIT do {                                               \
+  int is_final;                                                            \
+  MPI_Finalized(&is_final);                                                \
+  if (!is_final)                                                           \
+    MPI_Abort(MPI_COMM_WORLD,-1);                                          \
+  } while(0)
 #else
 #define NVD_GERYON_EXIT assert(0==1)
 #endif
