@@ -21,7 +21,7 @@
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
-#include "include/geryon.h"
+#include "geryon/geryon.h"
 
 int main(int argc, char** argv) {
   UCL_Device cop;
