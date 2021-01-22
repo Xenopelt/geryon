@@ -184,9 +184,8 @@ class UCL_Device {
       else if (arch(i)<2.1) return _properties[i].multiProcessorCount*32;
       else if (arch(i)<3.0) return _properties[i].multiProcessorCount*48;
       else if (arch(i)<4.0) return _properties[i].multiProcessorCount*192;
-      else if (5.99<arch(i)<6.01) return _properties[i].multiProcessorCount*64;
-      else if (5.99<arch(i)<6.01) return _properties[i].multiProcessorCount*64;
-      else if (6.99<arch(i)<8.01) return _properties[i].multiProcessorCount*64;
+      else if (5.99<arch(i) && arch(i)<6.01) return _properties[i].multiProcessorCount*64;
+      else if (6.99<arch(i) && arch(i)<8.01) return _properties[i].multiProcessorCount*64;
       else return _properties[i].multiProcessorCount*128; }
 
   /// Get the gigabytes of global memory in the current device
