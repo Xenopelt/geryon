@@ -20,6 +20,7 @@
 #define __local __shared__
 #define mul24 __mul24
 #define __inline __host__ __device__
+#define atomic_add atomicAdd
 
 #elif defined(cl_khr_global_int32_base_atomics) // if it's in .cl file
 
@@ -33,6 +34,7 @@
 #define BLOCK_SIZE_Y get_local_size(1)
 #define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)
 #define __inline inline
+#define atomicAdd atomic_add
 
 #ifdef cl_khr_fp64
     #pragma OPENCL EXTENSION cl_khr_fp64 : enable
