@@ -61,6 +61,7 @@ const char * OpenCl_AddStr =
 "#define BLOCK_SIZE_Y get_local_size(1)\n"
 "#define __syncthreads() barrier(CLK_LOCAL_MEM_FENCE)\n"
 "#define __inline inline\n"
+"#define atomicAdd atomic_add\n"
 "#ifdef cl_khr_fp64\n"
 "    #pragma OPENCL EXTENSION cl_khr_fp64 : enable\n"
 "#elif defined(cl_amd_fp64)\n"
